@@ -1,0 +1,11 @@
+.venv/
+.tools/
+.runtime/
+.cache/
+__pycache__/
+.pytest_cache/
+models/*.task
+models/*.part
+output/
+*.pyc
+.DS_Store
