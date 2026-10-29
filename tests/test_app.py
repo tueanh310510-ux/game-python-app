@@ -19,44 +19,44 @@ class AppFlowTests(unittest.TestCase):
         app = AppTest.from_file(str(APP), default_timeout=30).run()
         self.assertFalse(app.exception)
         app.button(key=f"pick_{game}").click().run()
-        click_label(app, "Lưu đội & tiếp tục →")
-        click_label(app, "Sẵn sàng vào sân →")
+        click_label(app, "Save teams & continue →")
+        click_label(app, "Ready to play →")
         return app
 
     def test_play_confirm_download_and_persist_next_round(self):
         app = self.start_game("tic_tac_toe")
-        click_label(app, "▶ Bắt đầu vòng")
+        click_label(app, "▶ Start round")
         for cell in (0, 3, 1, 4, 2):
             app.button(key=f"cell_{cell}").click().run()
             self.assertFalse(app.exception)
         self.assertEqual(app.session_state["step"], 4)
         self.assertEqual(app.session_state["result"]["team_a_score"], 1)
-        click_label(app, "Xác nhận & ghi vào bảng điểm →")
+        click_label(app, "Confirm & add to scoreboard →")
         self.assertEqual(app.session_state["step"], 5)
         self.assertEqual(len(app.session_state["reports"]), 1)
         self.assertTrue(verify_results_hash(app.session_state["reports"][0]))
         app.run()
         self.assertEqual(len(app.session_state["reports"]), 1)
-        click_label(app, "+ Chơi vòng tiếp theo")
+        click_label(app, "+ Play next round")
         self.assertEqual(app.session_state["board"], [""] * 9)
         self.assertEqual(len(app.session_state["reports"]), 1)
         app.button(key="pick_basketball").click().run()
-        click_label(app, "Giữ đội & tiếp tục →")
+        click_label(app, "Keep teams & continue →")
         self.assertEqual(app.session_state["config"]["points"], 2)
 
     def test_all_video_games_reach_upload_without_errors(self):
         for game in ("football", "basketball", "rock_paper_scissors", "red_light_green_light"):
             with self.subTest(game=game):
                 app = self.start_game(game)
-                click_label(app, "Tôi đã có video →")
+                click_label(app, "I already have a video →")
                 self.assertEqual(app.session_state["step"], 4)
                 self.assertFalse(app.exception)
 
     def test_duplicate_names_block_progress(self):
         app = AppTest.from_file(str(APP), default_timeout=30).run()
         app.button(key="pick_football").click().run()
-        next(field for field in app.text_input if field.label == "Tên P2").set_value("Người chơi 1")
-        click_label(app, "Lưu đội & tiếp tục →")
+        next(field for field in app.text_input if field.label == "Name P2").set_value("Player 1")
+        click_label(app, "Save teams & continue →")
         self.assertEqual(app.session_state["step"], 1)
         self.assertTrue(app.error)
 

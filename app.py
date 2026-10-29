@@ -20,64 +20,16 @@ from ai_judge import (GAMES, MODEL_DIR, JudgeConfig, JudgeError, board_outcome,
 
 ROOT = Path(__file__).resolve().parent
 LABELS = {
-    "football": ("⚽", "Football", "Bóng đá", "Sút bóng qua vạch cầu môn. Mỗi cú sút là một cơ hội."),
-    "tic_tac_toe": ("✕", "Tic Tac Toe", "Cờ caro 3 × 3", "Luân phiên X và O. Ba ô thẳng hàng để chiến thắng."),
-    "rock_paper_scissors": ("✌️", "Rock Paper Scissors", "Kéo · Búa · Bao", "Cùng ra tay. AI đọc cử chỉ và phân xử từng lượt."),
-    "red_light_green_light": ("🚦", "Red Light Green Light", "Đèn đỏ · Đèn xanh", "Di chuyển khi đèn xanh. Giữ nguyên tư thế khi đèn đỏ."),
-    "basketball": ("🏀", "Basketball", "Bóng rổ", "Nhắm chuẩn, ném bóng. Ghi điểm khi bóng đi qua vành rổ."),
+    "football": ("⚽", "Football", "Football", "Score by kicking the ball across the goal line."),
+    "tic_tac_toe": ("✕", "Tic Tac Toe", "3 × 3 board", "Take turns placing X and O. Get three in a row to win."),
+    "rock_paper_scissors": ("✌️", "Rock Paper Scissors", "Rock · Paper · Scissors", "Show your hands. AI reads the gestures and scores each round."),
+    "red_light_green_light": ("🚦", "Red Light Green Light", "Red Light · Green Light", "Move on green. Freeze in place on red."),
+    "basketball": ("🏀", "Basketball", "Basketball", "Aim carefully. Score when the ball passes through the hoop."),
 }
-STEPS = ("Chọn trò chơi", "Người chơi & đội", "Luật & thiết lập", "Vào sân", "Trọng tài AI", "Bảng kết quả")
-
-TRANSLATIONS = {
-    "Sân chơi của cả nhà": "Family game day", "Cùng chơi hết mình.": "Play your best.",
-    "Để AI giữ điểm.": "Let AI keep score.", "Hôm nay, mình chơi gì?": "What shall we play today?",
-    "Chọn trò chơi →": "Choose this game →", "Chia đội, gọi đồng đội.": "Meet your teammates.",
-    "Giữ đội & tiếp tục →": "Keep teams & continue →", "Lưu đội & tiếp tục →": "Save teams & continue →",
-    "Luật rõ ràng. Chơi thật vui.": "Clear rules. Great games.", "Sẵn sàng vào sân →": "Ready to play →",
-    "Đến lượt cả nhà tỏa sáng.": "Let the games begin.", "▶ Bắt đầu vòng": "▶ Start round",
-    "Kết thúc vòng →": "End round →", "Tôi đã có video →": "I already have a video →",
-    "Căn vùng chấm điểm": "Calibrate scoring area", "Kết quả vòng này": "Round results",
-    "Các sự kiện được chấm": "Scored events", "Xác nhận & ghi vào bảng điểm →": "Confirm & add to scoreboard →",
-    "Trọng tài đã sẵn sàng.": "The referee is ready.", "Phân tích video": "Analyze video",
-    "Đang đọc khung hình…": "Reading video frames…", "Đang chấm điểm…": "Scoring…",
-    "Tải clip mẫu": "Download sample clip", "Xem video gốc": "View original video",
-    "Mỗi điểm số, một khoảnh khắc.": "Every point tells a story.", "Bắt đầu vòng đầu tiên": "Start the first round",
-    "Chọn lại / vòng mới": "Choose again / new round", "Tải lại đội ban đầu": "Reset players",
-    "Kiểm tra báo cáo JSON": "Verify JSON report", "Báo cáo cần kiểm tra": "Report to verify",
-    "Trạng thái AI": "AI status", "Nhận diện bàn tay": "Hand detection", "Nhận diện tư thế": "Pose detection",
-    "Bảng kết quả": "Scoreboard", "Người chơi & đội": "Players & teams", "Luật & thiết lập": "Rules & setup",
-    "Vào sân": "Game time", "Trọng tài AI": "AI referee", "Chọn trò chơi": "Choose a game",
-    "Bóng đá": "Football", "Cờ caro 3 × 3": "Tic-tac-toe 3 × 3", "Kéo · Búa · Bao": "Rock · Paper · Scissors",
-    "Đèn đỏ · Đèn xanh": "Red Light · Green Light", "Bóng rổ": "Basketball", "Cam": "Orange", "Vàng": "Yellow",
-    "Xanh lá": "Green", "Trắng": "White", "Chơi vòng tiếp theo": "Play next round", "CÙNG NHAU VỀ ĐÍCH": "PLAY TOGETHER",
-}
-
-def _translate(value):
-    if st.session_state.get("language", "English") != "English" or not isinstance(value, str):
-        return value
-    for source, target in sorted(TRANSLATIONS.items(), key=lambda item: -len(item[0])):
-        value = value.replace(source, target)
-    return value
-
-def _localize_streamlit():
-    for name in ("title", "header", "subheader", "caption", "write", "info", "warning", "error", "success", "button", "text_input", "number_input", "selectbox", "radio", "download_button", "form_submit_button", "markdown"):
-        original = getattr(st, name)
-        if getattr(original, "_family_localized", False):
-            continue
-        def localized(*args, _original=original, **kwargs):
-            args = tuple(_translate(arg) for arg in args)
-            if "label" in kwargs:
-                kwargs["label"] = _translate(kwargs["label"])
-            return _original(*args, **kwargs)
-        localized._family_localized = True
-        setattr(st, name, localized)
+STEPS = ("Choose a game", "Players & teams", "Rules & setup", "Game time", "AI referee", "Scoreboard")
 
 
 st.set_page_config(page_title="Family AI · Game Day", page_icon="🏟️", layout="wide")
-if "language" not in st.session_state:
-    st.session_state["language"] = "Tiếng Việt"
-_localize_streamlit()
-
 st.markdown("""
 <style>
 .block-container {max-width:1160px;padding-top:2.3rem;padding-bottom:4rem;}
@@ -107,8 +59,8 @@ h1 {font-size:3rem !important;line-height:1.1 !important;}
 def initialize():
     defaults = {
         "step": 0, "unlocked": 0, "game": "football", "config": asdict(JudgeConfig()),
-        "players": {"P1": "Người chơi 1", "P2": "Người chơi 2", "P3": "Người chơi 3", "P4": "Người chơi 4"},
-        "teams": {"A": "Đội Lá Xanh", "B": "Đội Nắng Vàng"}, "reports": [],
+        "players": {"P1": "Player 1", "P2": "Player 2", "P3": "Player 3", "P4": "Player 4"},
+        "teams": {"A": "Green Team", "B": "Yellow Team"}, "reports": [],
         "round_id": uuid.uuid4().hex, "board": [""] * 9, "started_at": None,
         "result": None, "analysis_key": None, "saved": False,
     }
@@ -119,7 +71,6 @@ def initialize():
 
 initialize()
 S = st.session_state
-S.language = st.sidebar.selectbox("Language / Ngôn ngữ", ("English", "Tiếng Việt"), index=0 if S.language == "English" else 1)
 
 
 def cfg():
@@ -149,12 +100,12 @@ def wrapped_result(result):
 
 
 def choose_game():
-    st.markdown('<div class="eyebrow">Sân chơi của cả nhà</div>', unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">Family game day</div>', unsafe_allow_html=True)
     st.markdown('''<div class="hero"><div class="eyebrow">FAMILY AI / GAME DAY</div>
-    <h1>Cùng chơi hết mình.<br>Để AI giữ điểm.</h1>
-    <p>Năm thử thách, hai đội, một ngày vui. Chọn sân chơi đầu tiên và tạo khoảnh khắc của cả nhà.</p>
-    <span class="chip">5 trò chơi</span><span class="chip">4 người chơi</span><span class="chip">Trọng tài video</span></div>''', unsafe_allow_html=True)
-    st.subheader("Hôm nay, mình chơi gì?")
+    <h1>Play your best.<br>Let AI keep score.</h1>
+    <p>Five challenges, two teams, one great day. Choose your first game and make it memorable.</p>
+    <span class="chip">5 games</span><span class="chip">4 players</span><span class="chip">Video referee</span></div>''', unsafe_allow_html=True)
+    st.subheader("What shall we play today?")
     for group in (GAMES[:3], GAMES[3:]):
         columns = st.columns(len(group))
         for column, game in zip(columns, group):
@@ -164,21 +115,21 @@ def choose_game():
                 st.subheader(name)
                 st.caption(subtitle)
                 st.write(description)
-                if st.button("Chọn trò chơi →", key=f"pick_{game}", use_container_width=True):
+                if st.button("Choose this game →", key=f"pick_{game}", use_container_width=True):
                     S.game = game
                     S.config = asdict(replace(cfg(), points=2 if game == "basketball" else 1))
                     go(1)
-    st.caption("AI xử lý video trên máy chạy ứng dụng. Hãy xem lại sự kiện trước khi ghi điểm vào giải.")
+    st.caption("Videos are processed on this server. Review events before adding scores to the tournament.")
 
 
 def setup_players():
-    st.title("Chia đội, gọi đồng đội.")
-    st.write("Mỗi đội có hai thành viên. Chọn người đại diện ở bước tiếp theo; đổi người qua từng vòng.")
+    st.title("Meet your teammates.")
+    st.write("Each team has two players. Choose representatives next; switch representatives between rounds.")
     if S.reports:
-        st.info("Giữ nguyên danh sách người chơi trong giải để tổng điểm và MVP nhất quán.")
+        st.info("Keep player names unchanged during the tournament so scores and MVP tracking stay consistent.")
         for team, ids in (("A", ("P1", "P2")), ("B", ("P3", "P4"))):
             st.write(f"**{S.teams[team]}** · " + " · ".join(display_player(p) for p in ids))
-        if st.button("Giữ đội & tiếp tục →", type="primary"):
+        if st.button("Keep teams & continue →", type="primary"):
             go(2)
         return
     with st.form("players_form"):
@@ -186,28 +137,28 @@ def setup_players():
         names, teams = {}, {}
         for column, team, players in zip(cols, ("A", "B"), (("P1", "P2"), ("P3", "P4"))):
             with column:
-                st.subheader(f"Đội {team}")
-                teams[team] = st.text_input(f"Tên đội {team}", value=S.teams[team], max_chars=40).strip()
+                st.subheader(f"Team {team}")
+                teams[team] = st.text_input(f"Team name {team}", value=S.teams[team], max_chars=40).strip()
                 for pid in players:
-                    names[pid] = st.text_input(f"Tên {pid}", value=S.players[pid], max_chars=40).strip()
-        if st.form_submit_button("Lưu đội & tiếp tục →", type="primary"):
+                    names[pid] = st.text_input(f"Name {pid}", value=S.players[pid], max_chars=40).strip()
+        if st.form_submit_button("Save teams & continue →", type="primary"):
             if not all(names.values()) or not all(teams.values()):
-                st.error("Điền đủ tên của bốn người chơi và hai đội.")
+                st.error("Enter names for all four players and both teams.")
             elif len({v.casefold() for v in names.values()}) != 4 or teams["A"].casefold() == teams["B"].casefold():
-                st.error("Tên người chơi và tên hai đội cần phân biệt để đọc bảng điểm.")
+                st.error("Player and team names must be unique for a clear scoreboard.")
             else:
                 S.players, S.teams = names, teams
                 go(2)
 
 
 def rules():
-    st.title("Luật rõ ràng. Chơi thật vui.")
+    st.title("Clear rules. Great games.")
     descriptions = {
-        "football": "Thi sút luân phiên: một người trong mỗi clip. Bóng vượt vạch theo đúng hướng nhận điểm. Camera cố định, dùng bóng màu nổi bật và tránh các vật cùng màu.",
-        "basketball": "Thi ném luân phiên: một người trong mỗi clip. Bóng đi xuống qua đoạn vành rổ đã chọn nhận điểm cố định. Quay ngang sao cho nhìn rõ bóng trước và sau vành.",
-        "tic_tac_toe": "Đội A dùng X, đội B dùng O. X đi trước. Luân phiên chọn ô trống; hàng ngang, dọc hoặc chéo gồm ba ô thắng ván. Có thể chơi trên màn hình hoặc tải video bàn cờ.",
-        "rock_paper_scissors": "Người đội A đưa một tay ở nửa trái ảnh, đội B ở nửa phải. Giữ cử chỉ ít nhất 0,55 giây. Sau mỗi lượt, cả hai rút tay khỏi ảnh ít nhất 0,4 giây. Búa thắng kéo; kéo thắng bao; bao thắng búa.",
-        "red_light_green_light": "Mỗi người đứng trong một nửa ảnh, nhìn rõ toàn thân. Đèn xanh được di chuyển. Sau thời gian phản ứng khi đèn đỏ bật, phải đứng yên; mỗi pha đỏ hoàn chỉnh hợp lệ nhận điểm. Di chuyển mất điểm của pha đó.",
+        "football": "Take turns shooting: one player per clip. A ball crossing the line in the correct direction scores. Keep the camera still. Use a brightly colored ball and avoid similarly colored objects.",
+        "basketball": "Take turns shooting: one player per clip. The ball scores when it travels down through the calibrated hoop. Film from the side so the ball is visible before and after the hoop.",
+        "tic_tac_toe": "Team A uses X and Team B uses O. X goes first. Take turns choosing an empty square; three in a row wins. Play on screen or upload a board video.",
+        "rock_paper_scissors": "Player A shows one hand on the left half of the frame; Player B uses the right. Hold each gesture for at least 0.55 seconds. Both players must remove their hands for at least 0.4 seconds between turns. Rock beats scissors, scissors beat paper, and paper beats rock.",
+        "red_light_green_light": "Each player stands in one half of the frame with their full body visible. Move on green. Freeze after the reaction time when the light turns red. Valid completed red phases score; movement loses that phase’s point.",
     }
     st.info(descriptions[S.game])
     current = cfg()
@@ -216,29 +167,29 @@ def rules():
     with st.form("rules_form"):
         left, right = st.columns(2)
         with left:
-            duration = st.number_input("Thời gian vòng (giây)", min_value=10, max_value=600, value=int(current.duration), step=10)
-            player_a = st.selectbox("Đại diện đội A / phía trái / X", ("P1", "P2"), format_func=player_labels.__getitem__,
+            duration = st.number_input("Round duration (seconds)", min_value=10, max_value=600, value=int(current.duration), step=10)
+            player_a = st.selectbox("Team A representative / left side / X", ("P1", "P2"), format_func=player_labels.__getitem__,
                                     index=("P1", "P2").index(current.player_a))
         with right:
-            points = st.number_input("Điểm mỗi lần thắng / ghi bàn", min_value=1, max_value=10, value=current.points)
-            player_b = st.selectbox("Đại diện đội B / phía phải / O", ("P3", "P4"), format_func=player_labels.__getitem__,
+            points = st.number_input("Points per win / score", min_value=1, max_value=10, value=current.points)
+            player_b = st.selectbox("Team B representative / right side / O", ("P3", "P4"), format_func=player_labels.__getitem__,
                                     index=("P3", "P4").index(current.player_b))
         active_team, color = current.active_team, current.ball_color
         green, red, grace = current.green_seconds, current.red_seconds, current.grace_seconds
         if S.game in ("football", "basketball"):
-            active_team = st.radio("Đội thực hiện clip này", ("A", "B"), format_func=team_labels.__getitem__, horizontal=True)
-            color = st.selectbox("Màu bóng", ("orange", "yellow", "green", "white"),
-                                 format_func=lambda c: {"orange": "Cam", "yellow": "Vàng", "green": "Xanh lá", "white": "Trắng"}[c])
-            st.caption("Chấm từng clip rồi tạo vòng mới để đội còn lại thi. Danh tính người sút/ném do bạn gán.")
+            active_team = st.radio("Team playing this clip", ("A", "B"), format_func=team_labels.__getitem__, horizontal=True)
+            color = st.selectbox("Ball color", ("orange", "yellow", "green", "white"),
+                                 format_func=lambda c: {"orange": "Orange", "yellow": "Yellow", "green": "Green", "white": "White"}[c])
+            st.caption("Score each clip, then start a new round for the other team. You assign the shooter/player.")
         if S.game == "red_light_green_light":
             a, b, c = st.columns(3)
-            green = a.number_input("Đèn xanh (giây)", 1.0, 15.0, current.green_seconds, 0.5)
-            red = b.number_input("Đèn đỏ (giây)", 1.0, 15.0, current.red_seconds, 0.5)
-            grace = c.number_input("Thời gian phản ứng (giây)", 0.0, 0.9, current.grace_seconds, 0.1)
-            st.caption("Video phải bắt đầu đúng lúc bấm Bắt đầu. Nếu quay sớm, nhập độ lệch ở bước chấm video.")
-        st.write("**Nếu hòa:** giữ kết quả hòa; tạo vòng phụ nếu muốn phân thắng bại.")
-        st.caption("MVP xét điểm trước, sau đó thời gian quan sát; đồng hạng được ghi nhận cùng nhau.")
-        if st.form_submit_button("Sẵn sàng vào sân →", type="primary"):
+            green = a.number_input("Green light (seconds)", 1.0, 15.0, current.green_seconds, 0.5)
+            red = b.number_input("Red light (seconds)", 1.0, 15.0, current.red_seconds, 0.5)
+            grace = c.number_input("Reaction time (seconds)", 0.0, 0.9, current.grace_seconds, 0.1)
+            st.caption("Start recording when you start the round. If recording begins early, enter the offset during video review.")
+        st.write("**On a tie:** keep the tie, or play a tiebreaker round.")
+        st.caption("MVP is based on score, then observed time; ties share MVP.")
+        if st.form_submit_button("Ready to play →", type="primary"):
             config = replace(current, duration=float(duration), points=points, player_a=player_a, player_b=player_b,
                              active_team=active_team, active_player=player_a if active_team == "A" else player_b,
                              ball_color=color, green_seconds=green, red_seconds=red, grace_seconds=grace)
@@ -257,7 +208,7 @@ def finish_round():
             S.result = wrapped_result(judge_board(S.board, cfg()))
         else:
             S.result = wrapped_result(make_result("tic_tac_toe", {"A": 0, "B": 0}, {}, [], cfg(), "interactive",
-                                                 "Vòng dừng trước khi có hàng thắng: hòa 0–0.", board=S.board))
+                                                 "Round ended without a winning line: 0–0 tie.", board=S.board))
     go(4)
 
 
@@ -269,28 +220,28 @@ def round_clock():
     st.progress(min(elapsed / cfg().duration, 1.0))
     if S.game == "red_light_green_light":
         color, _, age = light_state(elapsed, cfg())
-        label = "ĐÈN XANH · DI CHUYỂN" if color == "green" else "ĐÈN ĐỎ · ĐỨNG YÊN"
+        label = "GREEN LIGHT · MOVE" if color == "green" else "RED LIGHT · FREEZE"
         if S.started_at is None:
-            label = "SẴN SÀNG · CHỜ BẮT ĐẦU"
+            label = "READY · WAIT TO START"
         st.markdown(f'<div class="signal {color}">{label}</div>', unsafe_allow_html=True)
         if color == "red" and age < cfg().grace_seconds:
-            st.caption("Đang trong thời gian phản ứng.")
+            st.caption("Reaction time in progress.")
     if S.started_at is not None and remaining == 0:
         finish_round()
 
 
 def active_round():
-    st.title("Đến lượt cả nhà tỏa sáng.")
+    st.title("Let the games begin.")
     st.write(f"**{S.teams['A']}** · {display_player(cfg().player_a)}　 vs　 **{S.teams['B']}** · {display_player(cfg().player_b)}")
     round_clock()
     if S.started_at is None:
-        if st.button("▶ Bắt đầu vòng", type="primary", use_container_width=True):
+        if st.button("▶ Start round", type="primary", use_container_width=True):
             S.started_at = time.monotonic()
             st.rerun()
     if S.game == "tic_tac_toe":
         current = "X" if S.board.count("X") == S.board.count("O") else "O"
         pid = cfg().player_a if current == "X" else cfg().player_b
-        st.subheader(f"Lượt {current} · {display_player(pid)}")
+        st.subheader(f"Turn {current} · {display_player(pid)}")
         for row in range(3):
             for col, column in enumerate(st.columns(3)):
                 index = row * 3 + col
@@ -304,40 +255,40 @@ def active_round():
                         finish_round()
                     st.rerun()
     else:
-        st.info("Quay video bằng điện thoại hoặc webcam của bạn, rồi tải clip ở bước Trọng tài AI. Giữ camera cố định suốt vòng.")
+        st.info("Record with a phone or webcam and upload the clip in the AI Referee step. Keep the camera fixed throughout the round.")
         if S.game == "red_light_green_light":
-            st.caption("Cho người chơi thấy đèn trên màn hình. Bắt đầu video cùng lúc với đồng hồ; không tạm dừng giữa clip.")
+            st.caption("Show players the on-screen light. Start recording with the timer and do not pause the video.")
     left, right = st.columns(2)
-    if left.button("Kết thúc vòng →", disabled=S.started_at is None, use_container_width=True):
+    if left.button("End round →", disabled=S.started_at is None, use_container_width=True):
         finish_round()
-    if right.button("Tôi đã có video →", use_container_width=True):
+    if right.button("I already have a video →", use_container_width=True):
         go(4)
 
 
 def calibration(current):
-    with st.expander("Căn vùng chấm điểm", expanded=S.game in ("football", "basketball", "tic_tac_toe")):
-        st.caption("Tọa độ tính theo tỷ lệ ảnh: 0 là mép trái/trên, 1 là mép phải/dưới. Xem vạch xanh trên khung hình để căn chỉnh.")
+    with st.expander("Calibrate scoring area", expanded=S.game in ("football", "basketball", "tic_tac_toe")):
+        st.caption("Coordinates use image ratios: 0 is the left/top edge and 1 is the right/bottom edge. Align the green guide in the preview.")
         if S.game == "football":
-            x = st.slider("Vị trí vạch cầu môn (X)", 0.05, 0.95, current.goal_x, 0.01)
-            low, high = st.slider("Hai đầu cầu môn (Y)", 0.0, 1.0, (current.goal_y_min, current.goal_y_max), 0.01)
-            direction = st.selectbox("Hướng bóng đi vào cầu môn", ("right", "left"),
-                                     format_func=lambda d: "Từ trái sang phải →" if d == "right" else "← Từ phải sang trái")
+            x = st.slider("Goal line position (X)", 0.05, 0.95, current.goal_x, 0.01)
+            low, high = st.slider("Goal line endpoints (Y)", 0.0, 1.0, (current.goal_y_min, current.goal_y_max), 0.01)
+            direction = st.selectbox("Goal direction", ("right", "left"),
+                                     format_func=lambda d: "Left to right →" if d == "right" else "← Right to left")
             current = replace(current, goal_x=x, goal_y_min=low, goal_y_max=high, goal_direction=direction)
         elif S.game == "basketball":
-            y = st.slider("Độ cao vành rổ (Y)", 0.05, 0.95, current.hoop_y, 0.01)
-            low, high = st.slider("Hai mép vành rổ (X)", 0.0, 1.0, (current.hoop_x_min, current.hoop_x_max), 0.01)
+            y = st.slider("Hoop height (Y)", 0.05, 0.95, current.hoop_y, 0.01)
+            low, high = st.slider("Hoop edges (X)", 0.0, 1.0, (current.hoop_x_min, current.hoop_x_max), 0.01)
             current = replace(current, hoop_y=y, hoop_x_min=low, hoop_x_max=high)
         elif S.game == "tic_tac_toe":
-            st.caption("Bàn cờ nền trắng, nét đen, quay thẳng từ trên xuống. Căn vùng vừa sát mép ngoài bàn 3 × 3.")
-            x1, x2 = st.slider("Mép trái/phải bàn cờ", 0.0, 1.0, (0.1, 0.9), 0.01)
-            y1, y2 = st.slider("Mép trên/dưới bàn cờ", 0.0, 1.0, (0.1, 0.9), 0.01)
+            st.caption("Use a white board with black lines, filmed directly from above. Fit the calibration area tightly around the 3 × 3 board.")
+            x1, x2 = st.slider("Board left/right edges", 0.0, 1.0, (0.1, 0.9), 0.01)
+            y1, y2 = st.slider("Board top/bottom edges", 0.0, 1.0, (0.1, 0.9), 0.01)
             current = replace(current, board_roi=(x1, y1, x2 - x1, y2 - y1))
         elif S.game == "red_light_green_light":
-            offset = st.number_input("Video bắt đầu ở giây thứ mấy của đồng hồ?", 0.0, 600.0, current.video_offset, 0.1)
-            threshold = st.slider("Ngưỡng chuyển động (tỷ lệ chiều ảnh)", 0.005, 0.15, current.motion_threshold, 0.005)
+            offset = st.number_input("At what timer second does the video start?", 0.0, 600.0, current.video_offset, 0.1)
+            threshold = st.slider("Motion threshold (image ratio)", 0.005, 0.15, current.motion_threshold, 0.005)
             current = replace(current, video_offset=offset, motion_threshold=threshold)
         else:
-            st.write("Đội A ở nửa trái ảnh, đội B ở nửa phải. Mỗi người chỉ đưa một tay vào ảnh.")
+            st.write("Team A stays on the left half of the frame; Team B stays on the right. Each player should show only one hand.")
     return current
 
 
@@ -349,29 +300,29 @@ def score_cards(result):
 
 
 def review_result(result):
-    st.subheader("Kết quả vòng này")
+    st.subheader("Round results")
     score_cards(result)
     st.write(result["details"])
     for warning in result.get("warnings", []):
         st.warning(warning)
     if result.get("source") == "video":
-        st.caption(f"Đã phân tích {result['frames_analyzed']} khung hình / {result['duration_seconds']} giây. Các sự kiện thị giác là ước lượng cần xem lại.")
+        st.caption(f"Analyzed {result['frames_analyzed']} frames / {result['duration_seconds']} seconds. Visual events are estimates and should be reviewed.")
     if result["events"]:
-        with st.expander("Các sự kiện được chấm", expanded=True):
+        with st.expander("Scored events", expanded=True):
             st.dataframe(result["events"], hide_index=True, use_container_width=True)
     if verify_results_hash(result):
-        st.success("Mã SHA-256 khớp với nội dung báo cáo.")
+        st.success("SHA-256 matches the report content.")
     else:
-        st.error("Báo cáo không vượt qua kiểm tra toàn vẹn.")
+        st.error("Report integrity check failed.")
         return
-    st.caption("SHA-256 phát hiện thay đổi so với mã đã lưu; không xác thực danh tính người tạo hoặc độ chính xác của AI.")
-    if st.button("Xác nhận & ghi vào bảng điểm →", type="primary", disabled=S.saved):
+    st.caption("SHA-256 detects changes from the saved digest; it does not verify the creator or AI accuracy.")
+    if st.button("Confirm & add to scoreboard →", type="primary", disabled=S.saved):
         # The same bytes cannot be scored a second time in this tournament,
         # even if the user changes a setting or starts a new round.
         source_digest = result.get("video_sha256")
         duplicate = any(r["round_id"] == result["round_id"] or (source_digest and source_digest == r.get("video_sha256")) for r in S.reports)
         if duplicate:
-            st.error("Vòng hoặc video này đã được tính điểm. Hãy sử dụng clip mới cho vòng tiếp theo.")
+            st.error("This round or video has already been scored. Use a new clip for the next round.")
         else:
             S.reports = [*S.reports, result]
             S.saved = True
@@ -379,27 +330,27 @@ def review_result(result):
 
 
 def ai_review():
-    st.title("Trọng tài đã sẵn sàng.")
+    st.title("The referee is ready.")
     if S.result and S.result["source"] == "interactive":
         review_result(S.result)
         return
-    st.write("Tải video, kiểm tra vùng chấm và xem lại các sự kiện trước khi lưu điểm.")
+    st.write("Upload a video, calibrate the scoring area, and review events before saving scores.")
     current = calibration(cfg())
-    file = st.file_uploader("Video vòng thi · tối đa 150 MB", type=("mp4", "mov", "avi", "mkv", "webm"), key=f"video_{S.round_id}")
+    file = st.file_uploader("Round video · up to 150 MB", type=("mp4", "mov", "avi", "mkv", "webm"), key=f"video_{S.round_id}")
     sample_paths = {"football": ROOT / "samples/football_demo.mp4", "basketball": ROOT / "samples/basketball_demo.mp4", "tic_tac_toe": ROOT / "samples/tic_tac_toe_demo.mp4"}
     sample = sample_paths.get(S.game)
     use_demo = False
     if sample and sample.exists():
-        use_demo = st.checkbox("Dùng video mô phỏng để thử quy trình", key=f"demo_{S.round_id}")
+        use_demo = st.checkbox("Use a demo video to test the workflow", key=f"demo_{S.round_id}")
         if use_demo:
-            st.info("Clip hình học mô phỏng để kiểm tra bộ đếm. Đây không phải trận đấu thật.")
-            st.download_button("Tải clip mẫu", sample.read_bytes(), file_name=sample.name, mime="video/mp4")
+            st.info("Synthetic demo clip for testing the detector. This is not a real game.")
+            st.download_button("Download sample clip", sample.read_bytes(), file_name=sample.name, mime="video/mp4")
     if file is None and not use_demo:
-        st.caption("Bóng đá/bóng rổ: mỗi clip chỉ dành cho một người. Kéo búa bao/đèn đỏ đèn xanh: hai đại diện ở hai nửa ảnh.")
+        st.caption("Football/Basketball: one player per clip. Rock Paper Scissors/Red Light Green Light: representatives occupy opposite halves of the frame.")
         return
     data = sample.read_bytes() if use_demo else file.getvalue()
     if len(data) > 150 * 1024 * 1024:
-        st.error("Video vượt giới hạn 150 MB.")
+        st.error("Video exceeds the 150 MB limit.")
         return
     suffix = ".mp4" if use_demo else Path(file.name).suffix
     fingerprint = hashlib.sha256(data + canonical_bytes(asdict(current))).hexdigest()
@@ -411,16 +362,16 @@ def ai_review():
         path.write_bytes(data)
         try:
             current.validate()
-            st.image(preview_frame(str(path), current, S.game), caption="Khung đầu tiên · vạch xanh là vùng chấm điểm", use_container_width=True)
+            st.image(preview_frame(str(path), current, S.game), caption="First frame · green line marks the scoring area", use_container_width=True)
         except JudgeError as exc:
             st.error(str(exc))
             return
-        with st.expander("Xem video gốc"):
+        with st.expander("View original video"):
             st.video(data)
-        if st.button("Phân tích video", type="primary"):
-            bar = st.progress(0.0, text="Đang đọc khung hình…")
+        if st.button("Analyze video", type="primary"):
+            bar = st.progress(0.0, text="Reading video frames…")
             try:
-                result = process_game_video(str(path), S.game, current, lambda ratio: bar.progress(ratio, text="Đang chấm điểm…"))
+                result = process_game_video(str(path), S.game, current, lambda ratio: bar.progress(ratio, text="Scoring…"))
                 S.result = wrapped_result({**result, "demo": use_demo})
                 S.analysis_key = fingerprint
             except (JudgeError, RuntimeError) as exc:
@@ -430,28 +381,28 @@ def ai_review():
                 bar.empty()
     if S.result:
         if S.result.get("demo"):
-            st.info("Kết quả mô phỏng: có thể xem thử, nhưng không cộng vào bảng điểm giải.")
+            st.info("Demo result: for preview only; it is not added to the tournament scoreboard.")
             score_cards(S.result)
             st.json(S.result, expanded=False)
-            st.download_button("Tải báo cáo mô phỏng", json.dumps(S.result, ensure_ascii=False, indent=2), file_name="demo_result.json", mime="application/json")
+            st.download_button("Download demo report", json.dumps(S.result, ensure_ascii=False, indent=2), file_name="demo_result.json", mime="application/json")
         else:
             review_result(S.result)
 
 
 def scoreboard():
-    st.title("Mỗi điểm số, một khoảnh khắc.")
+    st.title("Every point tells a story.")
     reports = [r for r in S.reports if verify_results_hash(r)]
     if len(reports) != len(S.reports):
-        st.error("Một báo cáo đã thay đổi. Báo cáo đó được loại khỏi tổng điểm.")
+        st.error("A report was modified and excluded from the totals.")
     if not reports:
-        st.info("Chưa có vòng thi được xác nhận.")
-        if st.button("Bắt đầu vòng đầu tiên"):
+        st.info("No confirmed rounds yet.")
+        if st.button("Start the first round"):
             new_round()
         return
     total = {"team_a_score": sum(r["team_a_score"] for r in reports), "team_b_score": sum(r["team_b_score"] for r in reports)}
     score_cards(total)
     winner = "A" if total["team_a_score"] > total["team_b_score"] else "B" if total["team_b_score"] > total["team_a_score"] else None
-    st.subheader(f"🏆 {S.teams[winner]} đang dẫn đầu" if winner else "🤝 Hai đội đang hòa điểm")
+    st.subheader(f"🏆 {S.teams[winner]} is leading" if winner else "🤝 The teams are tied")
     points = {pid: sum(r["player_points"].get(pid, 0) for r in reports) for pid in S.players}
     observed = {pid: sum(r["observed_seconds"].get(pid, 0) for r in reports) for pid in S.players}
     candidates = [pid for pid in S.players if points[pid] > 0 or observed[pid] > 0]
@@ -459,24 +410,24 @@ def scoreboard():
     mvps = [display_player(p) for p in candidates if (points[p], round(observed[p], 2)) == best]
     if mvps:
         st.success("⭐ MVP: " + " & ".join(mvps))
-        st.caption("Ưu tiên điểm, sau đó thời gian quan sát đối tượng của người chơi đã gán. Cùng chỉ số được đồng MVP.")
+        st.caption("MVP is based on points, then observed time for the assigned player. Ties share MVP.")
     else:
-        st.info("Chưa đủ dữ liệu để chọn MVP.")
-    rows = [{"Vòng": i + 1, "Trò chơi": LABELS[r["game_type"]][1], "Đội A": r["team_a_score"], "Đội B": r["team_b_score"], "Nguồn": "Video" if r["source"] == "video" else "Bàn cờ", "MVP": r["mvp"] or "—"} for i, r in enumerate(reports)]
+        st.info("Not enough data to select an MVP.")
+    rows = [{"Round": i + 1, "Game": LABELS[r["game_type"]][1], "Team A": r["team_a_score"], "Team B": r["team_b_score"], "Source": "Video" if r["source"] == "video" else "Board", "MVP": r["mvp"] or "—"} for i, r in enumerate(reports)]
     st.dataframe(rows, hide_index=True, use_container_width=True)
-    st.subheader("Thành tích từng người")
-    st.dataframe([{"Người chơi": display_player(p), "Đội": S.teams["A" if p in ("P1", "P2") else "B"], "Điểm": points[p], "Thời gian quan sát (giây)": round(observed[p], 1)} for p in S.players], hide_index=True, use_container_width=True)
+    st.subheader("Individual stats")
+    st.dataframe([{"Player": display_player(p), "Team": S.teams["A" if p in ("P1", "P2") else "B"], "Points": points[p], "Observed time (seconds)": round(observed[p], 1)} for p in S.players], hide_index=True, use_container_width=True)
     bundle = sign_results({"schema_version": 1, "teams": S.teams, "players": S.players, "rounds": reports, "totals": total})
-    st.download_button("↓ Tải toàn bộ kết quả JSON", json.dumps(bundle, ensure_ascii=False, indent=2), file_name="family_game_day_results.json", mime="application/json", use_container_width=True)
+    st.download_button("↓ Download all results (JSON)", json.dumps(bundle, ensure_ascii=False, indent=2), file_name="family_game_day_results.json", mime="application/json", use_container_width=True)
     if S.result:
-        st.download_button("↓ Tải báo cáo vòng gần nhất", json.dumps(S.result, ensure_ascii=False, indent=2), file_name=f"{S.game}_result.json", mime="application/json")
-    if st.button("+ Chơi vòng tiếp theo", type="primary", use_container_width=True):
+        st.download_button("↓ Download latest round report", json.dumps(S.result, ensure_ascii=False, indent=2), file_name=f"{S.game}_result.json", mime="application/json")
+    if st.button("+ Play next round", type="primary", use_container_width=True):
         new_round()
 
 
 with st.sidebar:
     st.markdown("### 🏟️ Family AI")
-    st.caption("GAME DAY / CÙNG NHAU VỀ ĐÍCH")
+    st.caption("GAME DAY / PLAY TOGETHER")
     st.divider()
     for i, label in enumerate(STEPS):
         # Once a round has started, setup is immutable; use a fresh round to change it.
@@ -486,16 +437,16 @@ with st.sidebar:
             S.step = i
             st.rerun()
     st.divider()
-    st.caption(f"{len(S.reports)} vòng đã ghi điểm")
+    st.caption(f"{len(S.reports)} rounds scored")
     if S.step > 0:
         st.write(f"{LABELS[S.game][0]} **{LABELS[S.game][1]}**")
-    if S.step > 0 and st.button("Chọn lại / vòng mới", use_container_width=True):
+    if S.step > 0 and st.button("Choose again / new round", use_container_width=True):
         new_round()
-    if st.button("Tải lại đội ban đầu", disabled=bool(S.reports) or S.step != 0):
-        S.players = {f"P{i}": f"Người chơi {i}" for i in range(1, 5)}
+    if st.button("Reset players", disabled=bool(S.reports) or S.step != 0):
+        S.players = {f"P{i}": f"Player {i}" for i in range(1, 5)}
         st.rerun()
-    with st.expander("Kiểm tra báo cáo JSON"):
-        uploaded_report = st.file_uploader("Báo cáo cần kiểm tra", type="json")
+    with st.expander("Verify JSON report"):
+        uploaded_report = st.file_uploader("Report to verify", type="json")
         if uploaded_report:
             try:
                 report = json.loads(uploaded_report.getvalue())
@@ -503,20 +454,20 @@ with st.sidebar:
                 if isinstance(report, dict) and "rounds" in report:
                     valid = valid and isinstance(report["rounds"], list) and all(verify_results_hash(r) for r in report["rounds"])
                 if valid:
-                    st.success("Nội dung khớp mã SHA-256.")
+                    st.success("Content matches SHA-256.")
                 else:
-                    st.error("Nội dung hoặc mã SHA-256 không hợp lệ.")
+                    st.error("Content or SHA-256 is invalid.")
             except (ValueError, TypeError):
-                st.error("Không đọc được JSON.")
-        st.caption("Kiểm tra toàn vẹn, không phải chữ ký xác thực.")
-    with st.expander("Trạng thái AI"):
-        for name, label in (("hand_landmarker.task", "Nhận diện bàn tay"), ("pose_landmarker_lite.task", "Nhận diện tư thế")):
+                st.error("Could not read JSON.")
+        st.caption("Integrity check only; this is not a verified signature.")
+    with st.expander("AI status"):
+        for name, label in (("hand_landmarker.task", "Hand detection"), ("pose_landmarker_lite.task", "Pose detection")):
             st.write(f"{'✅' if (MODEL_DIR / name).exists() else '○'} {label}")
-        st.caption("Nếu thiếu model, chạy python download_models.py trong thư mục dự án.")
-    st.caption("Bảng điểm giữ trong phiên trình duyệt. Tải JSON trước khi đóng hoặc tải lại trang.")
+        st.caption("If a model is missing, run python download_models.py in the project folder.")
+    st.caption("The scoreboard is stored in this session. Download the JSON before closing or refreshing.")
 
 if S.step > 0:
-    st.markdown(f'<div class="eyebrow">BƯỚC {S.step + 1} / 6 · {html.escape(STEPS[S.step])}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="eyebrow">STEP {S.step + 1} / 6 · {html.escape(STEPS[S.step])}</div>', unsafe_allow_html=True)
     st.progress((S.step + 1) / 6)
 
 (choose_game, setup_players, rules, active_round, ai_review, scoreboard)[S.step]()
