@@ -15,6 +15,17 @@ bash run.sh
 
 Mở **http://localhost:8501**. Dừng ứng dụng bằng `Ctrl+C` trong terminal.
 
+## Deploy miễn phí lên Streamlit Community Cloud
+
+1. Đăng nhập hoặc tạo tài khoản tại [share.streamlit.io](https://share.streamlit.io/) bằng GitHub.
+2. Bấm **Create app** → **Use existing repo**.
+3. Chọn repository `tueanh310510-ux/game-python-app`, branch `main`, và main file path `app.py`.
+4. Bấm **Deploy**. Nếu repository chưa xuất hiện, cấp quyền cho Streamlit Community Cloud truy cập repository trong phần GitHub permissions.
+
+`requirements.txt` đã có sẵn ở thư mục gốc của repository, nên Cloud sẽ cài dependencies tự động. App vẫn chạy nếu không có model MediaPipe: Football, Basketball và Tic Tac Toe hoạt động; Rock Paper Scissors và Red Light Green Light cần model tương ứng. Trong app đã có tải clip mẫu, không cần chạy `generate_samples.py` trên Cloud.
+
+Lưu ý: Community Cloud có tài nguyên và thời gian xử lý giới hạn. Phân tích video dài hoặc nặng có thể vượt giới hạn; bảng điểm chỉ tồn tại trong phiên và sẽ mất khi phiên bị khởi động lại. Không tải lên video riêng tư vì nội dung được gửi đến máy chủ để xử lý.
+
 ## Cài trên máy khác
 
 Khuyến nghị Python **3.11**. Code yêu cầu Python 3.10 trở lên.
